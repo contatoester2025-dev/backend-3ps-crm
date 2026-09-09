@@ -4,7 +4,7 @@
   "description": "Backend do 3Ps CRM: webhook Meta Lead Ads + WhatsApp via Evolution API",
   "main": "index.js",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": { "node": "22.x" },
   "scripts": { "start": "node index.js" },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
