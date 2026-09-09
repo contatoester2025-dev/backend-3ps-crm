@@ -1,4 +1,5 @@
-// Módulo de IA — chama a API da Anthropic
+// Módulo de IA — chama a API da Anthropic; sem chave, usa regras (regras.js)
+import { lembreteModelo, interpretarPorRegras } from './regras.js';
 const API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
@@ -26,6 +27,7 @@ Escreva em português do Brasil, informal mas profissional, no máximo 3 frases 
 
 // Redige a cobrança/lembrete para o corretor
 export async function redigirLembrete({ corretor, lead, regra, detalhe }) {
+  if (!API_KEY) return lembreteModelo({ corretor, lead, regra, detalhe });
   const user = `Corretor: ${corretor}
 Lead: ${lead.nome}${lead.empreendimento ? ` (interesse: ${lead.empreendimento})` : ''}${lead.cidade ? `, ${lead.cidade}` : ''}
 Etapa atual: ${lead.status}
@@ -38,6 +40,7 @@ Escreva a mensagem que o Agente 3Ps manda para ${corretor} no WhatsApp. Cumprime
 
 // Interpreta a resposta do corretor e devolve uma ação estruturada
 export async function interpretarResposta({ corretor, lead, mensagemAgente, respostaCorretor }) {
+  if (!API_KEY) return interpretarPorRegras({ lead, respostaCorretor });
   const system = PERSONA + `
 
 Sua tarefa agora é interpretar a resposta do corretor e propor UMA ação no CRM.

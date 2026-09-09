@@ -16,7 +16,8 @@ app.get('/', (req, res) => {
     servico: 'backend-3ps-crm',
     whatsapp: !!(process.env.EVOLUTION_URL && process.env.EVOLUTION_API_KEY && process.env.EVOLUTION_INSTANCE),
     meta: !!process.env.META_PAGE_ACCESS_TOKEN,
-    agente: !!process.env.ANTHROPIC_API_KEY
+    agente: process.env.AGENTE_ATIVO !== 'false',
+    ia: !!process.env.ANTHROPIC_API_KEY
   });
 });
 
@@ -89,7 +90,7 @@ app.post(['/webhook/whatsapp', '/webhook/whatsapp/*'], async (req, res) => {
     if (error) console.error('Erro ao salvar mensagem:', error.message);
 
     let tratado = false;
-    if (process.env.ANTHROPIC_API_KEY) tratado = await agente.tratarResposta(msg).catch(e => { console.error('Agente:', e.message); return false; });
+    if (process.env.AGENTE_ATIVO !== 'false') tratado = await agente.tratarResposta(msg).catch(e => { console.error('Agente:', e.message); return false; });
     if (!tratado && process.env.AGENTE_ECO === 'true') {
       await enviarERegistrar(msg.numero, `Recebi: "${msg.texto}" ✅`);
     }
@@ -130,7 +131,8 @@ app.post('/agente/ciclo', async (req, res) => {
   res.json({ ok: true });
 });
 
-if (process.env.ANTHROPIC_API_KEY) agente.iniciar(supabase);
-else console.log('ANTHROPIC_API_KEY ausente: agente desligado');
+if (process.env.AGENTE_ATIVO !== 'false') agente.iniciar(supabase);
+else console.log('AGENTE_ATIVO=false: agente desligado');
+if (!process.env.ANTHROPIC_API_KEY) console.log('Sem ANTHROPIC_API_KEY: agente em modo regras (sem IA)');
 
 app.listen(PORT, () => console.log(`backend-3ps-crm rodando na porta ${PORT}`));
