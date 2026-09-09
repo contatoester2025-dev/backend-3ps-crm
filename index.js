@@ -1,6 +1,7 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { enviar, extrairMensagem } from './whatsapp.js';
+import * as agente from './agente.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -14,7 +15,8 @@ app.get('/', (req, res) => {
     ok: true,
     servico: 'backend-3ps-crm',
     whatsapp: !!(process.env.EVOLUTION_URL && process.env.EVOLUTION_API_KEY && process.env.EVOLUTION_INSTANCE),
-    meta: !!process.env.META_PAGE_ACCESS_TOKEN
+    meta: !!process.env.META_PAGE_ACCESS_TOKEN,
+    agente: !!process.env.ANTHROPIC_API_KEY
   });
 });
 
@@ -86,7 +88,9 @@ app.post(['/webhook/whatsapp', '/webhook/whatsapp/*'], async (req, res) => {
     });
     if (error) console.error('Erro ao salvar mensagem:', error.message);
 
-    if ((process.env.AGENTE_ECO || 'true') === 'true') {
+    let tratado = false;
+    if (process.env.ANTHROPIC_API_KEY) tratado = await agente.tratarResposta(msg).catch(e => { console.error('Agente:', e.message); return false; });
+    if (!tratado && process.env.AGENTE_ECO === 'true') {
       await enviarERegistrar(msg.numero, `Recebi: "${msg.texto}" ✅`);
     }
   } catch (e) {
@@ -118,5 +122,15 @@ async function enviarERegistrar(numero, texto) {
   if (error) console.error('Erro ao registrar envio:', error.message);
   return data;
 }
+
+// Força um ciclo do agente agora (teste). Header: x-token = BACKEND_TOKEN
+app.post('/agente/ciclo', async (req, res) => {
+  if (req.headers['x-token'] !== process.env.BACKEND_TOKEN) return res.status(401).json({ ok: false });
+  await agente.ciclo();
+  res.json({ ok: true });
+});
+
+if (process.env.ANTHROPIC_API_KEY) agente.iniciar(supabase);
+else console.log('ANTHROPIC_API_KEY ausente: agente desligado');
 
 app.listen(PORT, () => console.log(`backend-3ps-crm rodando na porta ${PORT}`));

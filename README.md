@@ -16,3 +16,9 @@ Backend do 3Ps CRM. Recebe leads do Meta Lead Ads e envia/recebe mensagens de Wh
 4. Settings → Networking → Generate Domain.
 5. No manager da Evolution, configure o webhook da instância com `https://SEU-DOMINIO/webhook/whatsapp` e o evento MESSAGES_UPSERT.
 6. Rode `supabase.sql` no Supabase.
+
+## Agente de IA (fase 2)
+1. Rode `supabase-fase2.sql` no Supabase.
+2. Cadastre o WhatsApp dos corretores e ative: `update corretores set whatsapp='55...', agente_ativo=true where nome='Eliane';`
+3. Adicione `ANTHROPIC_API_KEY` nas variáveis do Railway.
+4. O agente roda sozinho a cada 30 min (8h–20h). Para forçar um ciclo: `POST /agente/ciclo` com header `x-token`.
