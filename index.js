@@ -5,7 +5,7 @@ import { enviar, extrairMensagem } from './whatsapp.js';
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const supabase = createClient(process.env.SUPABASE_URL || 'https://qrfehznrjfaokbuqiroc.supabase.co', process.env.SUPABASE_KEY);
 const PORT = process.env.PORT || 3000;
 
 // ---------- Healthcheck ----------
@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 // ---------- Meta Lead Ads ----------
 app.get('/webhook/meta-leads', (req, res) => {
   const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
-  if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) return res.status(200).send(challenge);
+  if (mode === 'subscribe' && token === (process.env.META_VERIFY_TOKEN || '3ps_crm_token_secreto')) return res.status(200).send(challenge);
   res.sendStatus(403);
 });
 
@@ -86,7 +86,7 @@ app.post(['/webhook/whatsapp', '/webhook/whatsapp/*'], async (req, res) => {
     });
     if (error) console.error('Erro ao salvar mensagem:', error.message);
 
-    if (process.env.AGENTE_ECO === 'true') {
+    if ((process.env.AGENTE_ECO || 'true') === 'true') {
       await enviarERegistrar(msg.numero, `Recebi: "${msg.texto}" ✅`);
     }
   } catch (e) {

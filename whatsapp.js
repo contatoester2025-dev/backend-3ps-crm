@@ -2,9 +2,9 @@
 // enviar(numero, texto)  -> manda mensagem de texto
 // extrairMensagem(body)  -> lê o webhook da Evolution e devolve {numero, nome, texto, id, timestamp} ou null
 
-const URL = (process.env.EVOLUTION_URL || '').replace(/\/$/, '');
+const URL = (process.env.EVOLUTION_URL || 'https://evolution-api-production-d613.up.railway.app').replace(/\/$/, '');
 const KEY = process.env.EVOLUTION_API_KEY || '';
-const INSTANCE = process.env.EVOLUTION_INSTANCE || '';
+const INSTANCE = process.env.EVOLUTION_INSTANCE || 'EXCLUSIVE IMOVEIS';
 
 function limparNumero(n) {
   return String(n || '').replace(/\D/g, '');
